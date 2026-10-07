@@ -3,6 +3,8 @@
 const { Pool } = require("pg");
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
+exports.ping = async () => { await pool.query("SELECT 1"); };                                       // used by /health
+
 exports.list = async () => (await pool.query("SELECT * FROM books ORDER BY id")).rows;              // READ
 
 exports.create = async ({ title, author, year }) =>                                                 // WRITE
