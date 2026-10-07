@@ -1,0 +1,13 @@
+# name : Excalcius
+        # if that doesnt work
+            # - excalcius
+            #- excalsius
+            # - Excalsius
+# pass : Poging_Lamig21
+        #if that doesnt work
+            # - poginglamig
+            # - poginglamig21
+            # - Poging_Lamig
+
+# mix and match nalang, need to set credentials sa jenkins credentials
+# need full access on git repo to manage jenkins

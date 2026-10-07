@@ -1,0 +1,51 @@
+# REQUIREMENT 5.1 (bullet 1): three application modules (frontend, api, lookup),
+# each in its OWN container, plus a database container.
+services:
+  frontend:                      # module 1
+    build: ./frontend
+    ports: ["3080:80"]
+    depends_on: [api, lookup]
+
+  api:                           # module 2 - reads/writes the database (bullet 2)
+    build: ./api
+    environment:
+      DATABASE_URL: postgres://library:library@db:5432/library
+    depends_on:
+      db: { condition: service_healthy }
+    healthcheck:                 # bullet 3: health check uses GET /health
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
+      interval: 10s
+
+  lookup:                        # module 3
+    build: ./lookup
+    healthcheck:                 # bullet 3
+      test: ["CMD", "wget", "-qO-", "http://localhost:3001/health"]
+      interval: 10s
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: library
+      POSTGRES_PASSWORD: library
+      POSTGRES_DB: library
+    volumes:
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - dbdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U library"]
+      interval: 5s
+
+  jenkins:
+    image: jenkins/jenkins:lts
+    restart: unless-stopped
+    ports:
+      - "9090:8080"      # Mapped to port 9090 on your host to avoid conflict with frontend
+      - "50001:50000"    # Agent communication port
+    volumes:
+      - jenkins_data:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+    user: root           # Grants Jenkins permissions to run Docker commands
+
+volumes:
+  dbdata:
+  jenkins_data:
