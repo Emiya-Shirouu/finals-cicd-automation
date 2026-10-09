@@ -1,6 +1,12 @@
 pipeline {
     agent any
 
+    environment {
+        DOCKER_REGISTRY = 'excalsius'
+        TAG = "${env.BUILD_NUMBER}"
+        PATH = "/usr/bin:\$PATH"
+    }
+
     triggers {
         githubPush()
     }
@@ -37,28 +43,28 @@ pipeline {
             steps {
                 sh "/usr/bin/docker build -t ${env.DOCKER_REGISTRY}/finals-api:${env.TAG} -t ${env.DOCKER_REGISTRY}/finals-api:latest ./api"
                 sh "/usr/bin/docker build -t ${env.DOCKER_REGISTRY}/finals-frontend:${env.TAG} -t ${env.DOCKER_REGISTRY}/finals-frontend:latest ./frontend"
-                sh "docker build -t ${env.DOCKER_REGISTRY}/finals-lookup:${env.TAG} -t ${env.DOCKER_REGISTRY}/finals-lookup:latest ./lookup"
+                sh "/usr/bin/docker build -t ${env.DOCKER_REGISTRY}/finals-lookup:${env.TAG} -t ${env.DOCKER_REGISTRY}/finals-lookup:latest ./lookup"
             }
         }
 
         stage('Push to Registry') {
             steps {
                 withCredentials([string(credentialsId: 'docker-hub-credentials', variable: 'DOCKER_PASSWORD')]) {
-                    sh "echo \$DOCKER_PASSWORD | docker login -u ${env.DOCKER_REGISTRY} --password-stdin"
-                    sh "docker push ${env.DOCKER_REGISTRY}/finals-api:${env.TAG}"
-                    sh "docker push ${env.DOCKER_REGISTRY}/finals-api:latest"
-                    sh "docker push ${env.DOCKER_REGISTRY}/finals-frontend:${env.TAG}"
-                    sh "docker push ${env.DOCKER_REGISTRY}/finals-frontend:latest"
-                    sh "docker push ${env.DOCKER_REGISTRY}/finals-lookup:${env.TAG}"
-                    sh "docker push ${env.DOCKER_REGISTRY}/finals-lookup:latest"
+                    sh "echo \$DOCKER_PASSWORD | /usr/bin/docker login -u ${env.DOCKER_REGISTRY} --password-stdin"
+                    sh "/usr/bin/docker push ${env.DOCKER_REGISTRY}/finals-api:${env.TAG}"
+                    sh "/usr/bin/docker push ${env.DOCKER_REGISTRY}/finals-api:latest"
+                    sh "/usr/bin/docker push ${env.DOCKER_REGISTRY}/finals-frontend:${env.TAG}"
+                    sh "/usr/bin/docker push ${env.DOCKER_REGISTRY}/finals-frontend:latest"
+                    sh "/usr/bin/docker push ${env.DOCKER_REGISTRY}/finals-lookup:${env.TAG}"
+                    sh "/usr/bin/docker push ${env.DOCKER_REGISTRY}/finals-lookup:latest"
                 }
             }
         }
 
         stage('Deploy via Docker Compose') {
             steps {
-                sh 'docker compose down'
-                sh 'docker compose up -d'
+                sh '/usr/bin/docker compose down'
+                sh '/usr/bin/docker compose up -d'
             }
         }
 
