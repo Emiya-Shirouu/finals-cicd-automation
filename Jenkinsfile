@@ -1,10 +1,5 @@
 pipeline {
-    agent {
-        docker {
-            image 'node:20-alpine'
-            args '-v /var/run/docker.sock:/var/run/docker.sock'
-        }
-    }
+    agent any
 
     environment {
         DOCKER_REGISTRY = 'excalsius'
@@ -21,7 +16,7 @@ pipeline {
         stage('Test API Module') {
             steps {
                 dir('api') {
-                    sh 'npm install && npm test'
+                    sh 'docker run --rm -v $(pwd):/app -w /app node:20-alpine sh -c "npm install && npm test"'
                 }
             }
         }
@@ -29,7 +24,7 @@ pipeline {
         stage('Test Lookup Module') {
             steps {
                 dir('lookup') {
-                    sh 'npm install && npm test'
+                    sh 'docker run --rm -v $(pwd):/app -w /app node:20-alpine sh -c "npm install && npm test"'
                 }
             }
         }
