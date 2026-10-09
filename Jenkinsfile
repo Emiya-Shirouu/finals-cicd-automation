@@ -20,8 +20,10 @@ pipeline {
         stage('Test API Module') {
             steps {
                 dir('api') {
-                    sh 'npm install'
-                    sh 'npm test'
+                    docker.image('node:20-alpine').inside {
+                        sh 'npm install'
+                        sh 'npm test'
+                    }
                 }
             }
         }
@@ -29,8 +31,10 @@ pipeline {
         stage('Test Lookup Module') {
             steps {
                 dir('lookup') {
-                    sh 'npm install'
-                    sh 'npm test'
+                    docker.image('node:20-alpine').inside {
+                        sh 'npm install'
+                        sh 'npm test'
+                    }
                 }
             }
         }
