@@ -20,7 +20,7 @@ pipeline {
         stage('Test API Module') {
             steps {
                 dir('api') {
-                    sh '/usr/bin/docker run --rm -v $WORKSPACE/api:/app -w /app node:20-alpine sh -c "npm install && npm test"'
+                    sh 'docker run --rm -v $WORKSPACE/api:/app -w /app node:20-alpine sh -c "npm install && npm test"'
                 }
             }
         }
@@ -28,7 +28,7 @@ pipeline {
         stage('Test Lookup Module') {
             steps {
                 dir('lookup') {
-                    sh '/usr/bin/docker run --rm -v $WORKSPACE/lookup:/app -w /app node:20-alpine sh -c "npm install && npm test"'
+                    sh 'docker run --rm -v $WORKSPACE/lookup:/app -w /app node:20-alpine sh -c "npm install && npm test"'
                 }
             }
         }
