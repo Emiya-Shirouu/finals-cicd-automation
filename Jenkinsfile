@@ -20,7 +20,7 @@ pipeline {
         stage('Test API Module') {
             steps {
                 dir('api') {
-                    sh '/usr/local/bin/docker run --rm -v $WORKSPACE/api:/app -w /app node:20-alpine sh -c "npm install && npm test"'
+                    sh 'docker run --rm -v $WORKSPACE/api:/app -w /app node:20-alpine sh -c "npm install && npm test"'
                 }
             }
         }
@@ -28,7 +28,7 @@ pipeline {
         stage('Test Lookup Module') {
             steps {
                 dir('lookup') {
-                    sh '/usr/local/bin/docker run --rm -v $WORKSPACE/lookup:/app -w /app node:20-alpine sh -c "npm install && npm test"'
+                    sh 'docker run --rm -v $WORKSPACE/lookup:/app -w /app node:20-alpine sh -c "npm install && npm test"'
                 }
             }
         }
@@ -37,7 +37,7 @@ pipeline {
             steps {
                 sh "/usr/bin/docker build -t ${env.DOCKER_REGISTRY}/finals-api:${env.TAG} -t ${env.DOCKER_REGISTRY}/finals-api:latest ./api"
                 sh "/usr/bin/docker build -t ${env.DOCKER_REGISTRY}/finals-frontend:${env.TAG} -t ${env.DOCKER_REGISTRY}/finals-frontend:latest ./frontend"
-                sh "docker build -t ${env.DOCKER_REGISTRY}/finals-lookup:${env.TAG} -t ${env.DOCKER_REGISTRY}/finals-lookup:latest ./lookup"
+                sh "/usr/bin/docker build -t ${env.DOCKER_REGISTRY}/finals-lookup:${env.TAG} -t ${env.DOCKER_REGISTRY}/finals-lookup:latest ./lookup"
             }
         }
 
