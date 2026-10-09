@@ -1,14 +1,14 @@
 pipeline {
-    agent any
-
-    triggers {
-        githubPush()
+    agent {
+        docker {
+            image 'node:20-alpine'
+            args '-v /var/run/docker.sock:/var/run/docker.sock'
+        }
     }
 
     environment {
         DOCKER_REGISTRY = 'excalsius'
         TAG = "${env.BUILD_NUMBER}"
-        PATH = "/usr/bin:$PATH"
     }
 
     stages {
@@ -17,10 +17,11 @@ pipeline {
                 checkout scm
             }
         }
-stage('Test API Module') {
+
+        stage('Test API Module') {
             steps {
                 dir('api') {
-                    sh '/usr/bin/docker run --rm -v $WORKSPACE/api:/app -w /app node:20-alpine sh -c "npm install && npm test"'
+                    sh 'npm install && npm test'
                 }
             }
         }
@@ -28,7 +29,7 @@ stage('Test API Module') {
         stage('Test Lookup Module') {
             steps {
                 dir('lookup') {
-                    sh '/usr/bin/docker run --rm -v $WORKSPACE/lookup:/app -w /app node:20-alpine sh -c "npm install && npm test"'
+                    sh 'npm install && npm test'
                 }
             }
         }
