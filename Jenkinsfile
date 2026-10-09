@@ -20,12 +20,8 @@ pipeline {
         stage('Test API Module') {
             steps {
                 dir('api') {
-                    script {
-                        docker.image('node:20-alpine').inside {
-                            sh 'npm install'
-                            sh 'npm test'
-                        }
-                    }
+                    // Run npm install and test inside a temporary node container mounted to the workspace
+                    sh 'docker run --rm -v $(pwd):/app -w /app node:20-alpine sh -c "npm install && npm test"'
                 }
             }
         }
@@ -33,12 +29,8 @@ pipeline {
         stage('Test Lookup Module') {
             steps {
                 dir('lookup') {
-                    script {
-                        docker.image('node:20-alpine').inside {
-                            sh 'npm install'
-                            sh 'npm test'
-                        }
-                    }
+                    // Run npm install and test inside a temporary node container mounted to the workspace
+                    sh 'docker run --rm -v $(pwd):/app -w /app node:20-alpine sh -c "npm install && npm test"'
                 }
             }
         }
