@@ -20,9 +20,11 @@ pipeline {
         stage('Test API Module') {
             steps {
                 dir('api') {
-                    docker.image('node:20-alpine').inside {
-                        sh 'npm install'
-                        sh 'npm test'
+                    script {
+                        docker.image('node:20-alpine').inside {
+                            sh 'npm install'
+                            sh 'npm test'
+                        }
                     }
                 }
             }
@@ -31,9 +33,11 @@ pipeline {
         stage('Test Lookup Module') {
             steps {
                 dir('lookup') {
-                    docker.image('node:20-alpine').inside {
-                        sh 'npm install'
-                        sh 'npm test'
+                    script {
+                        docker.image('node:20-alpine').inside {
+                            sh 'npm install'
+                            sh 'npm test'
+                        }
                     }
                 }
             }
@@ -41,7 +45,6 @@ pipeline {
 
         stage('Build Docker Images') {
             steps {
-                // Build images with tags matching your registry and build number/latest
                 sh "docker build -t ${env.DOCKER_REGISTRY}/finals-api:${env.TAG} -t ${env.DOCKER_REGISTRY}/finals-api:latest ./api"
                 sh "docker build -t ${env.DOCKER_REGISTRY}/finals-frontend:${env.TAG} -t ${env.DOCKER_REGISTRY}/finals-frontend:latest ./frontend"
                 sh "docker build -t ${env.DOCKER_REGISTRY}/finals-lookup:${env.TAG} -t ${env.DOCKER_REGISTRY}/finals-lookup:latest ./lookup"
@@ -50,7 +53,6 @@ pipeline {
 
         stage('Push to Registry') {
             steps {
-                // Uses the Docker credentials ID you set up earlier in Jenkins
                 withCredentials([string(credentialsId: 'docker-hub-credentials', variable: 'DOCKER_PASSWORD')]) {
                     sh "echo \$DOCKER_PASSWORD | docker login -u ${env.DOCKER_REGISTRY} --password-stdin"
                     sh "docker push ${env.DOCKER_REGISTRY}/finals-api:${env.TAG}"
