@@ -1,8 +1,13 @@
 pipeline {
     agent any
 
+    triggers {
+        githubPush()
+    }
+
     environment {
         DOCKER_REGISTRY = 'excalsius'
+        TAG = "${env.BUILD_NUMBER}"
     }
 
     stages {
@@ -32,33 +37,46 @@ pipeline {
 
         stage('Build Docker Images') {
             steps {
-                script {
-                    // Build images using your Dockerfiles in each module folder
-                    docker.image("${env.DOCKER_REGISTRY}/finals-api:latest").build("api/")
-                    docker.image("${env.DOCKER_REGISTRY}/finals-frontend:latest").build("frontend/")
-                    docker.image("${env.DOCKER_REGISTRY}/finals-lookup:latest").build("lookup/")
-                }
+                // Build images with tags matching your registry and build number/latest
+                sh "docker build -t ${env.DOCKER_REGISTRY}/finals-api:${env.TAG} -t ${env.DOCKER_REGISTRY}/finals-api:latest ./api"
+                sh "docker build -t ${env.DOCKER_REGISTRY}/finals-frontend:${env.TAG} -t ${env.DOCKER_REGISTRY}/finals-frontend:latest ./frontend"
+                sh "docker build -t ${env.DOCKER_REGISTRY}/finals-lookup:${env.TAG} -t ${env.DOCKER_REGISTRY}/finals-lookup:latest ./lookup"
             }
         }
 
         stage('Push to Registry') {
             steps {
-                script {
-                    // Uses the Docker credentials ID you set up earlier in Jenkins
-                    docker.withRegistry('https://index.docker.io/v1/', 'docker-hub-credentials') {
-                        docker.image("${env.DOCKER_REGISTRY}/finals-api:latest").push()
-                        docker.image("${env.DOCKER_REGISTRY}/finals-frontend:latest").push()
-                        docker.image("${env.DOCKER_REGISTRY}/finals-lookup:latest").push()
-                    }
+                // Uses the Docker credentials ID you set up earlier in Jenkins
+                withCredentials([string(credentialsId: 'docker-hub-credentials', variable: 'DOCKER_PASSWORD')]) {
+                    sh "echo \$DOCKER_PASSWORD | docker login -u ${env.DOCKER_REGISTRY} --password-stdin"
+                    sh "docker push ${env.DOCKER_REGISTRY}/finals-api:${env.TAG}"
+                    sh "docker push ${env.DOCKER_REGISTRY}/finals-api:latest"
+                    sh "docker push ${env.DOCKER_REGISTRY}/finals-frontend:${env.TAG}"
+                    sh "docker push ${env.DOCKER_REGISTRY}/finals-frontend:latest"
+                    sh "docker push ${env.DOCKER_REGISTRY}/finals-lookup:${env.TAG}"
+                    sh "docker push ${env.DOCKER_REGISTRY}/finals-lookup:latest"
                 }
             }
         }
 
         stage('Deploy via Docker Compose') {
             steps {
-                // Restart services using docker-compose with the updated images
-                sh 'docker-compose down'
-                sh 'docker-compose up -d'
+                sh 'docker compose down'
+                sh 'docker compose up -d'
+            }
+        }
+
+        stage('Smoke Test') {
+            steps {
+                sh '''
+                  for i in $(seq 1 12); do
+                    if curl -f http://localhost:3080/health; then
+                      echo "Smoke test passed"; exit 0
+                    fi
+                    echo "Waiting for services..."; sleep 5
+                  done
+                  echo "Smoke test failed"; exit 1
+                '''
             }
         }
     }
@@ -68,10 +86,10 @@ pipeline {
             cleanWs()
         }
         success {
-            echo 'Pipeline completed successfully and application deployed!'
+            echo "Pipeline build ${TAG} completed successfully and application deployed!"
         }
         failure {
-            echo 'Pipeline failed. Please check the stage logs for details.'
+            echo "Pipeline build ${TAG} failed. Please check the stage logs for details."
         }
     }
 }

@@ -35,17 +35,6 @@ services:
       test: ["CMD-SHELL", "pg_isready -U library"]
       interval: 5s
 
-  jenkins:
-    image: jenkins/jenkins:lts
-    restart: unless-stopped
-    ports:
-      - "9090:8080"      # Mapped to port 9090 on your host to avoid conflict with frontend
-      - "50001:50000"    # Agent communication port
-    volumes:
-      - jenkins_data:/var/jenkins_home
-      - /var/run/docker.sock:/var/run/docker.sock
-    user: root           # Grants Jenkins permissions to run Docker commands
-
+  
 volumes:
   dbdata:
-  jenkins_data:
