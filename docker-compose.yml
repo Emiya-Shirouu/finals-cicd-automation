@@ -23,13 +23,12 @@ services:
       interval: 10s
 
   db:
-    image: postgres:16-alpine
+    build: ./db
     environment:
       POSTGRES_USER: library
       POSTGRES_PASSWORD: library
       POSTGRES_DB: library
     volumes:
-      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
       - dbdata:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U library"]
