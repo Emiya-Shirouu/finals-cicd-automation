@@ -17,7 +17,7 @@ pipeline {
             steps {
                 dir('api') {
                     sh '''
-                      docker run --rm -v "${PWD}:/app" -w /app node:20-alpine \
+                      docker run --rm --volumes-from jenkins -w "$PWD" node:20-alpine \
                         sh -c "npm install && npm test"
                     '''
                 }
@@ -28,7 +28,7 @@ pipeline {
             steps {
                 dir('lookup') {
                     sh '''
-                      docker run --rm -v "${PWD}:/app" -w /app node:20-alpine \
+                      docker run --rm --volumes-from jenkins -w "$PWD" node:20-alpine \
                         sh -c "npm install && npm test"
                     '''
                 }
@@ -43,24 +43,10 @@ pipeline {
             }
         }
 
-        stage('Push to Registry') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'c4fcc5ad-ad3f-45f9-a4dc-6b73d9608566', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USER')]) {
-                    sh "echo \$DOCKER_PASSWORD | docker login -u \$DOCKER_USER --password-stdin"
-                    sh "docker push ${env.DOCKER_REGISTRY}/finals-api:${env.TAG}"
-                    sh "docker push ${env.DOCKER_REGISTRY}/finals-api:latest"
-                    sh "docker push ${env.DOCKER_REGISTRY}/finals-frontend:${env.TAG}"
-                    sh "docker push ${env.DOCKER_REGISTRY}/finals-frontend:latest"
-                    sh "docker push ${env.DOCKER_REGISTRY}/finals-lookup:${env.TAG}"
-                    sh "docker push ${env.DOCKER_REGISTRY}/finals-lookup:latest"
-                }
-            }
-        }
-
         stage('Deploy via Docker Compose') {
             steps {
-                sh 'docker compose down || true'
-                sh 'docker compose up -d'
+                sh 'docker compose -p finals build'
+                sh 'docker compose -p finals up -d'
             }
         }
 
