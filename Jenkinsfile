@@ -17,7 +17,7 @@ pipeline {
             steps {
                 dir('api') {
                     sh '''
-                      docker run --rm -v "${PWD}:/app" -w /app node:20-alpine \
+                      docker run --rm -v "${WORKSPACE}/api:/app" -w /app node:20-alpine \
                         sh -c "npm install && npm test"
                     '''
                 }
@@ -28,7 +28,7 @@ pipeline {
             steps {
                 dir('lookup') {
                     sh '''
-                      docker run --rm -v "${PWD}:/app" -w /app node:20-alpine \
+                      docker run --rm -v "${WORKSPACE}/lookup:/app" -w /app node:20-alpine \
                         sh -c "npm install && npm test"
                     '''
                 }
@@ -78,16 +78,3 @@ pipeline {
             }
         }
     }
-
-    post {
-        always {
-            cleanWs()
-        }
-        success {
-            echo "Pipeline build ${TAG} completed successfully and application deployed!"
-        }
-        failure {
-            echo "Pipeline build ${TAG} failed. Please check the stage logs for details."
-        }
-    }
-}
