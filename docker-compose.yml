@@ -1,39 +1,115 @@
-# REQUIREMENT 5.1 (bullet 1): three application modules (frontend, api, lookup),
-# each in its OWN container, plus a database container.
+# Application stack. Jenkins lives in infra/jenkins/ (separate compose file).
+# Start everything with:  docker compose up -d --build
+# Project name "finals" matches the Jenkinsfile (docker compose -p finals ...)
+name: finals
+
 services:
-  frontend:                      # module 1
-    build: ./frontend
-    ports: ["3080:80"]
-    depends_on: [api, lookup]
-
-  api:                           # module 2 - reads/writes the database (bullet 2)
-    build: ./api
-    environment:
-      DATABASE_URL: postgres://library:library@db:5432/library
+  # ---------- Single public entry point (the ONLY service that publishes a port) ----------
+  proxy:
+    build: ./proxy
+    image: excalsius/finals-proxy:${TAG:-latest}
+    ports:
+      - "${HTTP_PORT:-3080}:8080"
     depends_on:
-      db: { condition: service_healthy }
-    healthcheck:                 # bullet 3: health check uses GET /health
-      test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
-      interval: 10s
+      frontend:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+      lookup:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/health"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+    networks:
+      - edge-net
 
-  lookup:                        # module 3
-    build: ./lookup
-    healthcheck:                 # bullet 3
-      test: ["CMD", "wget", "-qO-", "http://localhost:3001/health"]
-      interval: 10s
+  # ---------- Frontend (static pages, Nginx) ----------
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        BUILD_NUMBER: ${TAG:-dev}   # written to /version.txt so the page can show the build
+    image: excalsius/finals-frontend:${TAG:-latest}
+    depends_on:
+      api:
+        condition: service_healthy
+      lookup:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/health"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+    networks:
+      - edge-net
 
+  # ---------- API module (reads/writes the database) ----------
+  api:
+    build:
+      context: ./api
+      target: production
+    image: excalsius/finals-api:${TAG:-latest}
+    environment:
+      DATABASE_URL: postgres://${DB_USER:-library}:${DB_PASSWORD}@db:5432/${DB_NAME:-library}
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/health"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - edge-net
+      - data-net
+
+  # ---------- Lookup module (calls the external Open Library service) ----------
+  lookup:
+    build:
+      context: ./lookup
+      target: production
+    image: excalsius/finals-lookup:${TAG:-latest}
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3001/health"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - edge-net
+
+  # ---------- Database (NOT published to the host) ----------
   db:
     build: ./db
+    image: excalsius/finals-db:${TAG:-latest}
     environment:
-      POSTGRES_USER: library
-      POSTGRES_PASSWORD: library
-      POSTGRES_DB: library
+      POSTGRES_DB: ${DB_NAME:-library}
+      POSTGRES_USER: ${DB_USER:-library}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
-      - dbdata:/var/lib/postgresql/data
+      - db-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U library"]
-      interval: 5s
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - data-net
 
-  
 volumes:
-  dbdata:
+  db-data:
+
+networks:
+  edge-net:   # proxy, frontend, api, lookup
+  data-net:   # api and db only
