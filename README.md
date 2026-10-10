@@ -8,10 +8,10 @@ A containerized multi-service web application featuring automated testing, CI/CD
 
 * **`.github/workflows/ci.yml`**: GitHub Actions continuous integration and deployment pipeline configuration.
 * **`docker-compose.yml`**: Orchestrates the multi-container environment for local development and testing.
-* **`api/`**: Core backend API service built with Node.js, including database connection logic, Dockerfile, tests, and dependency configurations[cite: 1].
-* **`lookup/`**: Secondary microservice or lookup component featuring its own application logic, Docker configuration, and test suites[cite: 1].
-* **`frontend/`**: Client-facing service utilizing Nginx and static HTML assets (`index.html`, `edit.html`)[cite: 1].
-* **`db/`**: Contains database initialization scripts (`init.sql`) for setting up the relational data store[cite: 1].
+* **`api/`**: Core backend API service built with Node.js, including database connection logic, Dockerfile, tests, and dependency configurations.
+* **`lookup/`**: Secondary microservice or lookup component featuring its own application logic, Docker configuration, and test suites.
+* **`frontend/`**: Client-facing service utilizing Nginx and static HTML assets (`index.html`, `edit.html`).
+* **`db/`**: Contains database initialization scripts (`init.sql`) for setting up the relational data store.
 
 ---
 
