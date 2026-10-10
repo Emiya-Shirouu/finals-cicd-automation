@@ -45,6 +45,7 @@ pipeline {
 
         stage('Deploy via Docker Compose') {
             steps {
+                sh 'cp -n .env.example .env'
                 sh 'docker compose -p finals build'
                 sh 'docker compose -p finals up -d'
             }
