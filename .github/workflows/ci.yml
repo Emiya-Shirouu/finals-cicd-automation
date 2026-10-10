@@ -16,5 +16,7 @@ jobs:
     needs: test
     steps:
       - uses: actions/checkout@v4
+      - name: Create .env for CI
+        run: cp .env.example .env
       - run: docker compose up -d --build
       - run: sleep 15 && curl -f http://localhost:3080/health && curl -f http://localhost:3080/api/books
