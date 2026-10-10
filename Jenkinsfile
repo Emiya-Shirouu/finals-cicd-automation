@@ -78,3 +78,16 @@ pipeline {
             }
         }
     }
+
+    post {
+        always {
+            cleanWs()
+        }
+        success {
+            echo "Pipeline build ${TAG} completed successfully and application deployed!"
+        }
+        failure {
+            echo "Pipeline build ${TAG} failed. Please check the stage logs for details."
+        }
+    }
+}
