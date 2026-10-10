@@ -17,7 +17,7 @@ pipeline {
             steps {
                 dir('api') {
                     sh '''
-                      /usr/bin/docker run --rm --volumes-from jenkins -w "$PWD" node:20-alpine \
+                      docker run --rm -v "${PWD}:/app" -w /app node:20-alpine \
                         sh -c "npm install && npm test"
                     '''
                 }
@@ -28,7 +28,7 @@ pipeline {
             steps {
                 dir('lookup') {
                     sh '''
-                      /usr/bin/docker run --rm --volumes-from jenkins -w "$PWD" node:20-alpine \
+                      docker run --rm -v "${PWD}:/app" -w /app node:20-alpine \
                         sh -c "npm install && npm test"
                     '''
                 }
@@ -37,31 +37,30 @@ pipeline {
 
         stage('Build Docker Images') {
             steps {
-                sh "/usr/bin/docker build -t ${env.DOCKER_REGISTRY}/finals-api:${env.TAG} -t ${env.DOCKER_REGISTRY}/finals-api:latest ./api"
-                sh "/usr/bin/docker build -t ${env.DOCKER_REGISTRY}/finals-frontend:${env.TAG} -t ${env.DOCKER_REGISTRY}/finals-frontend:latest ./frontend"
-                sh "/usr/bin/docker build -t ${env.DOCKER_REGISTRY}/finals-lookup:${env.TAG} -t ${env.DOCKER_REGISTRY}/finals-lookup:latest ./lookup"
+                sh "docker build -t ${env.DOCKER_REGISTRY}/finals-api:${env.TAG} -t ${env.DOCKER_REGISTRY}/finals-api:latest ./api"
+                sh "docker build -t ${env.DOCKER_REGISTRY}/finals-frontend:${env.TAG} -t ${env.DOCKER_REGISTRY}/finals-frontend:latest ./frontend"
+                sh "docker build -t ${env.DOCKER_REGISTRY}/finals-lookup:${env.TAG} -t ${env.DOCKER_REGISTRY}/finals-lookup:latest ./lookup"
             }
         }
 
         stage('Push to Registry') {
             steps {
-                // Accepts any username and password/token dynamically configured in Jenkins credentials
-                withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USER')]) {
-                    sh "echo \$DOCKER_PASSWORD | /usr/bin/docker login -u \$DOCKER_USER --password-stdin"
-                    sh "/usr/bin/docker push ${env.DOCKER_REGISTRY}/finals-api:${env.TAG}"
-                    sh "/usr/bin/docker push ${env.DOCKER_REGISTRY}/finals-api:latest"
-                    sh "/usr/bin/docker push ${env.DOCKER_REGISTRY}/finals-frontend:${env.TAG}"
-                    sh "/usr/bin/docker push ${env.DOCKER_REGISTRY}/finals-frontend:latest"
-                    sh "/usr/bin/docker push ${env.DOCKER_REGISTRY}/finals-lookup:${env.TAG}"
-                    sh "/usr/bin/docker push ${env.DOCKER_REGISTRY}/finals-lookup:latest"
+                withCredentials([usernamePassword(credentialsId: 'c4fcc5ad-ad3f-45f9-a4dc-6b73d9608566', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USER')]) {
+                    sh "echo \$DOCKER_PASSWORD | docker login -u \$DOCKER_USER --password-stdin"
+                    sh "docker push ${env.DOCKER_REGISTRY}/finals-api:${env.TAG}"
+                    sh "docker push ${env.DOCKER_REGISTRY}/finals-api:latest"
+                    sh "docker push ${env.DOCKER_REGISTRY}/finals-frontend:${env.TAG}"
+                    sh "docker push ${env.DOCKER_REGISTRY}/finals-frontend:latest"
+                    sh "docker push ${env.DOCKER_REGISTRY}/finals-lookup:${env.TAG}"
+                    sh "docker push ${env.DOCKER_REGISTRY}/finals-lookup:latest"
                 }
             }
         }
 
         stage('Deploy via Docker Compose') {
             steps {
-                sh '/usr/bin/docker compose down || docker compose down'
-                sh '/usr/bin/docker compose up -d || docker compose up -d'
+                sh 'docker compose down || true'
+                sh 'docker compose up -d'
             }
         }
 
@@ -69,7 +68,7 @@ pipeline {
             steps {
                 sh '''
                   for i in $(seq 1 12); do
-                    if /usr/bin/docker run --rm --network host curlimages/curl -f http://localhost:3080/health; then
+                    if docker run --rm --network host curlimages/curl -f http://localhost:3080/health; then
                       echo "Smoke test passed"; exit 0
                     fi
                     echo "Waiting for services..."; sleep 5
