@@ -7,7 +7,7 @@ A containerized multi-service web application built with automated CI/CD pipelin
 
 ## Architecture Diagram
 
-![Architecture Diagram](Diagram-Git.png)
+![Architecture Diagram](Diagramgit.png)
 
 ---
 
