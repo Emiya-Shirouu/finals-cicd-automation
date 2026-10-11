@@ -7,9 +7,7 @@ A containerized multi-service web application built with automated CI/CD pipelin
 
 ## Architecture Diagram
 
-![Architecture Diagram](path/to/your-diagram.png)
-
-> *Note: Replace `path/to/your-diagram.png` with your diagram file path or image link.*
+![Architecture Diagram](DiagramGit.png)
 
 ---
 
