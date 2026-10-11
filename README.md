@@ -1,33 +1,29 @@
 # Finals CI/CD Automation Project
 
-A containerized multi-service web application featuring automated testing, CI/CD pipelines, a database layer, API microservices, a lookup component, and a frontend user interface.
+## Project Description
+A containerized multi-service web application built with automated CI/CD pipelines, automated testing, relational database integration, API microservices, a lookup service, and an Nginx frontend interface.
 
 ---
 
-## Project Structure
+## Architecture Diagram
 
-* **`.github/workflows/ci.yml`**: GitHub Actions continuous integration and deployment pipeline configuration.
-* **`docker-compose.yml`**: Orchestrates the multi-container environment for local development and testing.
-* **`api/`**: Core backend API service built with Node.js, including database connection logic, Dockerfile, tests, and dependency configurations.
-* **`lookup/`**: Secondary microservice or lookup component featuring its own application logic, Docker configuration, and test suites.
-* **`frontend/`**: Client-facing service utilizing Nginx and static HTML assets (`index.html`, `edit.html`).
-* **`db/`**: Contains database initialization scripts (`init.sql`) for setting up the relational data store.
+![Architecture Diagram](path/to/your-diagram.png)
+
+> *Note: Replace `path/to/your-diagram.png` with your diagram file path or image link.*
 
 ---
 
 ## Prerequisites
-
-Make sure you have the following installed on your machine:
 * [Docker](https://www.docker.com/) and Docker Compose
-* Node.js (optional, if you want to run tests locally outside of containers)
+* [Jenkins](https://www.jenkins.io/)
+* Node.js (v18+)
+* Git
 
 ---
 
-## Getting Started
+## How to Start Jenkins and the Stack
 
-To run the entire multi-service application locally using Docker:
-
-1. Clone this repository and navigate to the project root directory.
-2. Run the following command to build and start all containers:
-   ```bash
-   docker-compose up --build
+### 1. Starting Jenkins
+If running Jenkins in a Docker container:
+```bash
+docker run -d --name jenkins -p 8080:8080 -p 50000:50000 -v jenkins_home:/var/jenkins_home jenkins/jenkins:lts
