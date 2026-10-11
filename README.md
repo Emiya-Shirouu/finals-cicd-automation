@@ -25,3 +25,13 @@ A containerized multi-service web application built with automated CI/CD pipelin
 If running Jenkins in a Docker container:
 ```bash
 docker run -d --name jenkins -p 8080:8080 -p 50000:50000 -v jenkins_home:/var/jenkins_home jenkins/jenkins:lts
+
+```
+---
+
+## Team Members and Roles
+
+* **Ervin Joshua C. Bosito** – DevOps / CI-CD Engineer
+* **Raphael Christian I. Nuqui** – Frontend, QA, and Documentation Lead
+* **Joshua Adrian L. Chan** – Infrastructure Engineer
+* **Aaron James Ascunsion** – Backend and Database Engineer
